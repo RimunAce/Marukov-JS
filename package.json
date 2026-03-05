@@ -1,0 +1,46 @@
+{
+  "name": "marukov-js",
+  "version": "1.0.0",
+  "description": "Fast native Node.js bindings for the marukov Rust Markov chain text generator",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "license": "MIT",
+  "keywords": ["markov", "markov-chain", "text-generation", "napi", "rust", "native"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RimunAce/marukov-js.git"
+  },
+  "homepage": "https://github.com/RimunAce/marukov-js#readme",
+  "scripts": {
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "postbuild": "node scripts/fix-types.mjs",
+    "test": "node --test __test__/index.spec.mjs"
+  },
+  "napi": {
+    "binaryName": "index",
+    "targets": [
+      "x86_64-pc-windows-msvc",
+      "x86_64-unknown-linux-gnu",
+      "x86_64-unknown-linux-musl",
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin",
+      "aarch64-unknown-linux-gnu"
+    ]
+  },
+  "optionalDependencies": {
+    "marukov-js-win32-x64-msvc": "1.0.0",
+    "marukov-js-linux-x64-gnu": "1.0.0",
+    "marukov-js-linux-x64-musl": "1.0.0",
+    "marukov-js-linux-arm64-gnu": "1.0.0",
+    "marukov-js-darwin-x64": "1.0.0",
+    "marukov-js-darwin-arm64": "1.0.0"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.0"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ]
+}

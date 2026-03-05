@@ -1,0 +1,14 @@
+{
+  "name": "marukov-js-linux-x64-gnu",
+  "version": "1.0.0",
+  "description": "marukov-js linux-x64-gnu binary",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "main": "index.linux-x64-gnu.node",
+  "files": ["index.linux-x64-gnu.node"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RimunAce/marukov-js.git"
+  }
+}

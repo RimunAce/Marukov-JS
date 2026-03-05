@@ -1,0 +1,149 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+        tags: ["v*"]
+    pull_request:
+
+jobs:
+    build:
+        name: Build - ${{ matrix.target }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: windows-latest
+                      target: x86_64-pc-windows-msvc
+
+                    - os: ubuntu-latest
+                      target: x86_64-unknown-linux-gnu
+
+                    - os: ubuntu-latest
+                      target: x86_64-unknown-linux-musl
+                      rustflags: "-C target-feature=-crt-static"
+
+                    - os: ubuntu-latest
+                      target: aarch64-unknown-linux-gnu
+
+                    - os: macos-13
+                      target: x86_64-apple-darwin
+
+                    - os: macos-latest
+                      target: aarch64-apple-darwin
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: ${{ matrix.target }}
+
+            - uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/
+                  key: ${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+            - run: npm ci
+
+            - name: Install musl tools
+              if: matrix.target == 'x86_64-unknown-linux-musl'
+              run: sudo apt-get update -y && sudo apt-get install -y musl-tools
+
+            - name: Install aarch64 cross compiler
+              if: matrix.target == 'aarch64-unknown-linux-gnu'
+              run: sudo apt-get update -y && sudo apt-get install -y gcc-aarch64-linux-gnu
+
+            - name: Build
+              run: npx napi build --platform --release --target ${{ matrix.target }}
+              env:
+                  CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+                  RUSTFLAGS: ${{ matrix.rustflags || '' }}
+
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: bindings-${{ matrix.target }}
+                  path: "*.node"
+                  if-no-files-found: error
+
+    test:
+        name: Test - Node ${{ matrix.node }} on ${{ matrix.os }}
+        needs: build
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                node: [18, 20, 22]
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: npm
+
+            - name: Download native binding
+              uses: actions/download-artifact@v4
+              with:
+                  name: ${{ (matrix.os == 'windows-latest' && 'bindings-x86_64-pc-windows-msvc') || (matrix.os == 'macos-latest' && 'bindings-aarch64-apple-darwin') || 'bindings-x86_64-unknown-linux-gnu' }}
+                  path: .
+
+            - run: npm ci
+            - run: npm test
+
+    publish:
+        name: Publish to npm
+        if: startsWith(github.ref, 'refs/tags/v')
+        needs: [build, test]
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            id-token: write
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+                  registry-url: "https://registry.npmjs.org"
+
+            - run: npm ci
+
+            - name: Download all artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: artifacts
+
+            - name: Copy binaries to platform packages
+              run: npx napi artifacts --dir artifacts --dist npm
+
+            - name: Fix TypeScript declarations
+              run: node scripts/fix-types.mjs
+
+            - name: Publish platform packages
+              shell: bash
+              run: |
+                  for pkg in npm/win32-x64-msvc npm/linux-x64-gnu npm/linux-x64-musl npm/linux-arm64-gnu npm/darwin-x64 npm/darwin-arm64; do
+                    npm publish "$pkg" --access public
+                  done
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish main package
+              run: npm publish --access public --provenance
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

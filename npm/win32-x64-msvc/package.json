@@ -1,0 +1,14 @@
+{
+  "name": "marukov-js-win32-x64-msvc",
+  "version": "1.0.0",
+  "description": "marukov-js win32-x64-msvc binary",
+  "os": ["win32"],
+  "cpu": ["x64"],
+  "main": "index.win32-x64-msvc.node",
+  "files": ["index.win32-x64-msvc.node"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RimunAce/marukov-js.git"
+  }
+}

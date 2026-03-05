@@ -1,0 +1,18 @@
+# Rust build artifacts
+/target/
+Cargo.lock
+
+# Compiled native bindings
+*.node
+npm/*/*.node
+
+# Node.js
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

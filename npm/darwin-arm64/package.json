@@ -1,0 +1,14 @@
+{
+  "name": "marukov-js-darwin-arm64",
+  "version": "1.0.0",
+  "description": "marukov-js darwin-arm64 binary",
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "main": "index.darwin-arm64.node",
+  "files": ["index.darwin-arm64.node"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RimunAce/marukov-js.git"
+  }
+}
