@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 
-const path = new URL('../index.d.ts', import.meta.url).pathname.slice(1)
+const path = fileURLToPath(new URL('../index.d.ts', import.meta.url))
 let src = readFileSync(path, 'utf8')
 
 const replacements = [
