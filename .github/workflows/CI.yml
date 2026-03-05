@@ -142,7 +142,7 @@ jobs:
               shell: bash
               run: |
                   for pkg in npm/win32-x64-msvc npm/linux-x64-gnu npm/linux-x64-musl npm/linux-arm64-gnu npm/darwin-x64 npm/darwin-arm64; do
-                    npm publish "$pkg" --access public
+                    npm publish "./$pkg" --access public
                   done
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
